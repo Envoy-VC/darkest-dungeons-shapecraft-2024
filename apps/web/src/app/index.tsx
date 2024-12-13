@@ -1,21 +1,29 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, getRouteApi } from '@tanstack/react-router';
+import { useOnClickOutside } from 'usehooks-ts';
+import { z } from 'zod';
+import { HomeMenu } from '~/components';
 
-import { SignIn } from '~/components/sign-in';
+const routeApi = getRouteApi('/');
 
 export const HomeComponent = () => {
-  const [gameStarted, setGameStarted] = useState(false);
+  const { start } = routeApi.useSearch();
+
+  const [gameStarted, setGameStarted] = useState(start ?? false);
+
+  const ref = useRef(null);
+
+  const handleClickOutside = () => {
+    if (!gameStarted) {
+      setGameStarted(true);
+    }
+  };
+
+  useOnClickOutside(ref, handleClickOutside);
+
   return (
-    // eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events -- safe to ignore
-    <div
-      className='!m-0 !p-0'
-      onClick={() => {
-        if (!gameStarted) {
-          setGameStarted(true);
-        }
-      }}
-    >
+    <div className='!m-0 !p-0'>
       <img
         alt='background'
         className='absolute h-screen w-full'
@@ -26,11 +34,11 @@ export const HomeComponent = () => {
       </div>
       <div className='absolute right-1/2 bottom-[20%] z-[1] translate-x-1/2'>
         {!gameStarted ? (
-          <div className='animate-pulse text-neutral-400'>
+          <div ref={ref} className='animate-pulse text-neutral-400'>
             Click anywhere on the screen to start the game
           </div>
         ) : (
-          <SignIn />
+          <HomeMenu />
         )}
       </div>
     </div>
@@ -39,4 +47,7 @@ export const HomeComponent = () => {
 
 export const Route = createFileRoute('/')({
   component: HomeComponent,
+  validateSearch: z.object({
+    start: z.boolean().optional(),
+  }),
 });

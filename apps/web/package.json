@@ -40,6 +40,7 @@
     "sonner": "^1.7.0",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
+    "usehooks-ts": "^3.1.0",
     "viem": "2.20.0",
     "vite-plugin-node-polyfills": "^0.22.0",
     "wagmi": "2.12.7",

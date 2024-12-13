@@ -2,14 +2,15 @@
 @plugin 'tailwindcss-animate';
 
 html {
-  cursor: url('../../public/cursor.png'), auto;
+  cursor: url('/cursor.png'), auto;
 }
 
 a,
 button,
 input,
-textarea {
-  cursor: url('../../public/cursor-pointer.png'), auto;
+textarea,
+.cursor-pointer {
+  cursor: url('/cursor-pointer.png'), auto;
 }
 
 @layer base {
@@ -29,7 +30,7 @@ textarea {
 
 @font-face {
   font-family: 'Golondrina Europea';
-  src: url('../../public/fonts/Golondrina.otf');
+  src: url('/fonts/Golondrina.otf');
 }
 
 @theme {

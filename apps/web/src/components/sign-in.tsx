@@ -1,11 +1,10 @@
 import { FcGoogle as GoogleIcon } from 'react-icons/fc';
 
-import { useAuthenticate, useUser } from '@account-kit/react';
+import { useAuthenticate } from '@account-kit/react';
 
 import { Button } from './ui/button';
 
 export const SignIn = () => {
-  const user = useUser();
   const { authenticate, isPending } = useAuthenticate();
 
   return (
@@ -16,7 +15,7 @@ export const SignIn = () => {
           type: 'oauth',
           authProviderId: 'google',
           mode: 'redirect',
-          redirectUrl: '/',
+          redirectUrl: '/?start=true',
         });
       }}
     >
