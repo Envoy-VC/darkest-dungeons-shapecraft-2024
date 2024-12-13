@@ -1,6 +1,17 @@
 @import 'tailwindcss';
 @plugin 'tailwindcss-animate';
 
+html {
+  cursor: url('../../public/cursor.png'), auto;
+}
+
+a,
+button,
+input,
+textarea {
+  cursor: url('../../public/cursor-pointer.png'), auto;
+}
+
 @layer base {
   *,
   ::after,
@@ -42,6 +53,8 @@
   --color-accent-foreground: hsl(0 0% 98%);
   --color-destructive: hsl(0 62.8% 30.6%);
   --color-destructive-foreground: hsl(0 0% 98%);
+
+  --radius: 8px;
 
   /* Borders */
   --color-border: hsl(0 0% 14.9%);

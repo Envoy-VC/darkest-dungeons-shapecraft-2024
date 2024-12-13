@@ -6,12 +6,14 @@ import '../styles/globals.css';
 
 const RootComponent = () => {
   return (
-    <ProviderTree>
-      <Outlet />
+    <>
       {import.meta.env.MODE === 'development' && (
         <TanStackRouterDevtools position='bottom-right' />
       )}
-    </ProviderTree>
+      <ProviderTree>
+        <Outlet />
+      </ProviderTree>
+    </>
   );
 };
 

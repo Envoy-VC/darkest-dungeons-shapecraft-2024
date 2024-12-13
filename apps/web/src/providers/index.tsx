@@ -1,7 +1,7 @@
 import type { PropsWithChildren } from 'react';
 
-import { QueryProvider } from './query-provider';
+import { AlchemyProvider } from './alchemy-provider';
 
 export const ProviderTree = ({ children }: PropsWithChildren) => {
-  return <QueryProvider>{children}</QueryProvider>;
+  return <AlchemyProvider>{children}</AlchemyProvider>;
 };
