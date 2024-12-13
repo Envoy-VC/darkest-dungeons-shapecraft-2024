@@ -10,14 +10,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 // Import Routes
 import { Route as rootRoute } from './app/__root';
-import { Route as DungeonImport } from './app/dungeon';
+import { Route as GameImport } from './app/game';
 import { Route as IndexImport } from './app/index';
 
 // Create/Update Routes
 
-const DungeonRoute = DungeonImport.update({
-  id: '/dungeon',
-  path: '/dungeon',
+const GameRoute = GameImport.update({
+  id: '/game',
+  path: '/game',
   getParentRoute: () => rootRoute,
 } as any);
 
@@ -38,11 +38,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport;
       parentRoute: typeof rootRoute;
     };
-    '/dungeon': {
-      id: '/dungeon';
-      path: '/dungeon';
-      fullPath: '/dungeon';
-      preLoaderRoute: typeof DungeonImport;
+    '/game': {
+      id: '/game';
+      path: '/game';
+      fullPath: '/game';
+      preLoaderRoute: typeof GameImport;
       parentRoute: typeof rootRoute;
     };
   }
@@ -52,37 +52,37 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute;
-  '/dungeon': typeof DungeonRoute;
+  '/game': typeof GameRoute;
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute;
-  '/dungeon': typeof DungeonRoute;
+  '/game': typeof GameRoute;
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute;
   '/': typeof IndexRoute;
-  '/dungeon': typeof DungeonRoute;
+  '/game': typeof GameRoute;
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: '/' | '/dungeon';
+  fullPaths: '/' | '/game';
   fileRoutesByTo: FileRoutesByTo;
-  to: '/' | '/dungeon';
-  id: '__root__' | '/' | '/dungeon';
+  to: '/' | '/game';
+  id: '__root__' | '/' | '/game';
   fileRoutesById: FileRoutesById;
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
-  DungeonRoute: typeof DungeonRoute;
+  GameRoute: typeof GameRoute;
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DungeonRoute: DungeonRoute,
+  GameRoute: GameRoute,
 };
 
 export const routeTree = rootRoute
@@ -96,14 +96,14 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/dungeon"
+        "/game"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
-    "/dungeon": {
-      "filePath": "dungeon.tsx"
+    "/game": {
+      "filePath": "game.tsx"
     }
   }
 }

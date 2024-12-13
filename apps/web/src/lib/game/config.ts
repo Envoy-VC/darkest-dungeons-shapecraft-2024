@@ -1,12 +1,10 @@
-import GridEngine from 'grid-engine';
 import Phaser from 'phaser';
 
-export type PhaserWithGridEngine = Phaser.Scene;
-
 export const config = (
+  init: (this: Phaser.Scene, data: object) => void,
   preload: (this: Phaser.Scene) => void,
-  create: (this: PhaserWithGridEngine) => void,
-  update: (this: PhaserWithGridEngine) => void,
+  create: (this: Phaser.Scene) => void,
+  update: (this: Phaser.Scene) => void,
   parentRef?: string
 ): Phaser.Types.Core.GameConfig => {
   return {
@@ -27,7 +25,7 @@ export const config = (
     physics: {
       default: 'arcade',
       arcade: {
-        gravity: { y: 0 },
+        gravity: { y: 0, x: 1 },
       },
     },
   };
