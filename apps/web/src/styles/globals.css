@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@plugin 'tailwindcss-animate';
 
 @layer base {
   *,
@@ -10,8 +11,6 @@
   }
 }
 
-@plugin 'tailwindcss-animate';
-
 #app {
   padding: 0px !important;
   margin: 0px !important;
@@ -19,11 +18,12 @@
 
 @font-face {
   font-family: 'Golondrina Europea';
-  src: url('../../public/fonts/Golondrina Europea.otf') format('opentype');
+  src: url('../../public/fonts/Golondrina.otf');
 }
+
 @theme {
   /* Fonts */
-  --font-family-golondrina: 'Golondrina Europea', sans-serif;
+  --font-golondrina: 'Golondrina Europea', monospace;
 
   /* Colors */
   --color-background: hsl(0 0% 3.9%);
@@ -44,7 +44,7 @@
   --color-destructive-foreground: hsl(0 0% 98%);
 
   /* Borders */
-  --border: hsl(0 0% 14.9%);
+  --color-border: hsl(0 0% 14.9%);
 
   /* Shadows */
   --input: hsl(0 0% 14.9%);
