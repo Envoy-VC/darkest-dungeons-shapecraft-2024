@@ -10,9 +10,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 // Import Routes
 import { Route as rootRoute } from './app/__root';
+import { Route as DungeonImport } from './app/dungeon';
 import { Route as IndexImport } from './app/index';
 
 // Create/Update Routes
+
+const DungeonRoute = DungeonImport.update({
+  id: '/dungeon',
+  path: '/dungeon',
+  getParentRoute: () => rootRoute,
+} as any);
 
 const IndexRoute = IndexImport.update({
   id: '/',
@@ -31,6 +38,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport;
       parentRoute: typeof rootRoute;
     };
+    '/dungeon': {
+      id: '/dungeon';
+      path: '/dungeon';
+      fullPath: '/dungeon';
+      preLoaderRoute: typeof DungeonImport;
+      parentRoute: typeof rootRoute;
+    };
   }
 }
 
@@ -38,32 +52,37 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute;
+  '/dungeon': typeof DungeonRoute;
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute;
+  '/dungeon': typeof DungeonRoute;
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute;
   '/': typeof IndexRoute;
+  '/dungeon': typeof DungeonRoute;
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: '/';
+  fullPaths: '/' | '/dungeon';
   fileRoutesByTo: FileRoutesByTo;
-  to: '/';
-  id: '__root__' | '/';
+  to: '/' | '/dungeon';
+  id: '__root__' | '/' | '/dungeon';
   fileRoutesById: FileRoutesById;
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
+  DungeonRoute: typeof DungeonRoute;
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DungeonRoute: DungeonRoute,
 };
 
 export const routeTree = rootRoute
@@ -76,11 +95,15 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/"
+        "/",
+        "/dungeon"
       ]
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/dungeon": {
+      "filePath": "dungeon.tsx"
     }
   }
 }

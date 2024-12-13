@@ -8,6 +8,8 @@
   ::backdrop,
   ::file-selector-button {
     border-color: var(--color-gray-200, currentColor);
+    margin: 0;
+    padding: 0;
   }
 }
 
