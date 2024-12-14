@@ -4,11 +4,16 @@
 import { type Room } from '@mikewesthad/dungeon';
 import Phaser from 'phaser';
 
-import { Coin } from '~/components/game/entities/coin';
+import { Coin, Enemy } from '~/components/game/entities';
 import { type DungeonGameScene } from '~/components/game/scenes';
 import { gameState } from '~/components/game/state';
 
-import { coins, pickRandomCoin } from '../helpers/game';
+import {
+  coins,
+  enemies,
+  pickRandomCoin,
+  pickRandomEnemy,
+} from '../helpers/game';
 import { TILES } from './tile-mappings';
 
 export const preload = (scene: Phaser.Scene) => {
@@ -29,6 +34,17 @@ export const preload = (scene: Phaser.Scene) => {
     frameHeight: 16,
   });
 
+  enemies.forEach((enemy) => {
+    scene.load.spritesheet(
+      enemy.key,
+      `../../../public/dungeon/enemies/${enemy.key}.png`,
+      {
+        frameWidth: 16,
+        frameHeight: 16,
+      }
+    );
+  });
+
   for (const coin of coins) {
     scene.load.spritesheet(
       coin.key,
@@ -38,72 +54,6 @@ export const preload = (scene: Phaser.Scene) => {
         frameHeight: 16,
       }
     );
-  }
-};
-
-export const initializeMovement = (
-  scene: Phaser.Scene,
-  sprite: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody
-) => {
-  const keys = scene.input.keyboard?.createCursorKeys();
-  const wasd = scene.input.keyboard?.addKeys({
-    w: Phaser.Input.Keyboard.KeyCodes.W,
-    s: Phaser.Input.Keyboard.KeyCodes.S,
-    a: Phaser.Input.Keyboard.KeyCodes.A,
-    d: Phaser.Input.Keyboard.KeyCodes.D,
-  }) as {
-    w: Phaser.Input.Keyboard.Key;
-    s: Phaser.Input.Keyboard.Key;
-    a: Phaser.Input.Keyboard.Key;
-    d: Phaser.Input.Keyboard.Key;
-  };
-  const speed = 300;
-
-  if (!keys) return;
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- could be
-  if (!sprite.body) return;
-
-  const prevVelocity = sprite.body.velocity.clone();
-
-  sprite.body.setVelocity(0);
-
-  // Horizontal movement
-  if (keys.left.isDown || wasd.a.isDown) {
-    sprite.body.setVelocityX(-speed);
-    sprite.setFlipX(true);
-  } else if (keys.right.isDown || wasd.d.isDown) {
-    sprite.body.setVelocityX(speed);
-    sprite.setFlipX(false);
-  }
-
-  // Vertical movement
-  if (keys.up.isDown || wasd.w.isDown) {
-    sprite.body.setVelocityY(-speed);
-  } else if (keys.down.isDown || wasd.s.isDown) {
-    sprite.body.setVelocityY(speed);
-  }
-
-  // Normalize and scale the velocity so that sprite can't move faster along a diagonal
-  sprite.body.velocity.normalize().scale(speed);
-
-  // Update the animation last and give left/right animations precedence over up/down animations
-  if (
-    keys.left.isDown ||
-    keys.right.isDown ||
-    keys.down.isDown ||
-    wasd.a.isDown ||
-    wasd.d.isDown ||
-    wasd.s.isDown
-  ) {
-    sprite.anims.play('player-walk', true);
-  } else if (keys.up.isDown || wasd.w.isDown) {
-    sprite.anims.play('player-walk-back', true);
-  } else {
-    sprite.anims.stop();
-
-    // If we were moving, pick and idle frame to use
-    if (prevVelocity.y < 0) sprite.setTexture('characters', 65);
-    else sprite.setTexture('characters', 46);
   }
 };
 
@@ -247,6 +197,8 @@ export const createMap = (scene: DungeonGameScene) => {
       cam.once('camerafadeoutcomplete', () => {
         gameState.incrementLevel();
         scene.player.destroy();
+        scene.enemies = [];
+        scene.coins = [];
         scene.scene.restart();
       });
     },
@@ -263,6 +215,7 @@ export const createMap = (scene: DungeonGameScene) => {
 
   return {
     map,
+    otherRooms,
     tileset,
     startX: x,
     startY: y,
@@ -281,8 +234,8 @@ export function placeCoins(
   // Place Coins
   const coins: Coin[] = [];
   this.dungeon.rooms.forEach((room) => {
-    const maxCoinsperRoom = (room.width * room.height) / 50; // 1% of the tiles in the room
-    const coinsInRoom = Phaser.Math.Between(1, maxCoinsperRoom);
+    const maxCoinsPerRoom = (room.width * room.height) / 50; // 1% of the tiles in the room
+    const coinsInRoom = Phaser.Math.Between(1, maxCoinsPerRoom);
     for (let i = 0; i < coinsInRoom; i++) {
       const x = Phaser.Math.Between(room.left + 2, room.right - 2);
       const y = Phaser.Math.Between(room.top + 2, room.bottom - 2);
@@ -294,11 +247,99 @@ export function placeCoins(
       ) as Phaser.Tilemaps.Tile | null;
       const c = pickRandomCoin();
       if (!existing) {
-        const coin = new Coin(this, xWorld, yWorld, c?.key ?? 'silver');
+        const coin = new Coin(this, xWorld, yWorld, c);
         coins.push(coin);
       }
     }
   });
 
   return coins;
+}
+
+export function placeEnemies(
+  this: DungeonGameScene,
+  rooms: Room[],
+  map: Phaser.Tilemaps.Tilemap,
+  stuffLayer: Phaser.Tilemaps.TilemapLayer
+) {
+  // Place enemies
+  const enemies: Enemy[] = [];
+  rooms.forEach((room) => {
+    const totalTiles = room.width * room.height;
+    // TODO: make this more interesting like boss enemies on higher levels...
+
+    const maxEnemiesPerRoom = totalTiles / 100; // 1% of the tiles in the room
+    const enemiesInRoom = Phaser.Math.Between(1, maxEnemiesPerRoom);
+    for (let i = 0; i < enemiesInRoom; i++) {
+      const x = Phaser.Math.Between(room.left + 2, room.right - 2);
+      const y = Phaser.Math.Between(room.top + 2, room.bottom - 2);
+      const xWorld = map.tileToWorldX(x)!;
+      const yWorld = map.tileToWorldY(y)!;
+      const existing = stuffLayer.getTileAtWorldXY(
+        xWorld,
+        yWorld
+      ) as Phaser.Tilemaps.Tile | null;
+      const c = pickRandomEnemy();
+      if (!existing) {
+        const enemy = new Enemy(this, xWorld, yWorld, c);
+        enemies.push(enemy);
+      }
+    }
+  });
+
+  return enemies;
+}
+
+export function createAnimations(scene: DungeonGameScene) {
+  const anims = scene.anims;
+  enemies.forEach((enemy) => {
+    scene.anims.create({
+      key: `move-left-${enemy.key}`,
+      frames: anims.generateFrameNames(enemy.key, {
+        start: 0,
+        end: 0,
+      }),
+      frameRate: 10,
+      repeat: -1,
+    });
+
+    scene.anims.create({
+      key: `move-right-${enemy.key}`,
+      frames: anims.generateFrameNames(enemy.key, {
+        start: 1,
+        end: 1,
+      }), // 1st frame (right)
+      frameRate: 10,
+      repeat: -1,
+    });
+
+    scene.anims.create({
+      key: `move-up-${enemy.key}`,
+      frames: anims.generateFrameNames(enemy.key, {
+        start: 2,
+        end: 2,
+      }), // 2nd frame (up)
+      frameRate: 10,
+      repeat: -1,
+    });
+
+    scene.anims.create({
+      key: `move-down-${enemy.key}`,
+      frames: anims.generateFrameNames(enemy.key, {
+        start: 3,
+        end: 3,
+      }), // 3rd frame (down)
+      frameRate: 10,
+      repeat: -1,
+    });
+  });
+
+  coins.forEach((coin) => {
+    scene.anims.create({
+      key: `coin-${coin.key}`,
+      frames: anims.generateFrameNumbers(coin.key, { start: 0, end: 3 }),
+      frameRate: 4,
+      repeat: -1,
+    });
+  });
 }

@@ -1,10 +1,11 @@
-import { makeAutoObservable } from 'mobx';
+import type { CoinType } from '~/lib/helpers/game';
 
-import { coins } from '../../lib/helpers/game';
+import { makeAutoObservable } from 'mobx';
 
 export class GameState {
   public level = 1;
   public score = 0;
+  public playerHealth = 100;
 
   constructor() {
     makeAutoObservable(this);
@@ -14,10 +15,20 @@ export class GameState {
     this.level++;
   }
 
-  public addCoin(type: (typeof coins)[number]['key']) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- safe
-    const coin = coins.find((c) => c.key === type)!;
-    this.score += coin.points;
+  public getHealth() {
+    return this.playerHealth;
+  }
+
+  decrementHealth(amount: number) {
+    this.playerHealth = Math.max(this.playerHealth - amount, 0);
+  }
+
+  incrementHealth(amount: number) {
+    this.playerHealth = Math.min(this.playerHealth + amount, 100);
+  }
+
+  public addCoin(type: CoinType) {
+    this.score += type.points;
   }
 
   public incrementScore(points: number) {
