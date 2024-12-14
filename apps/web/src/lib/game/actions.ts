@@ -1,9 +1,14 @@
 /* eslint-disable @eslint-community/eslint-comments/disable-enable-pair -- safe */
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- safe */
-import Dungeon, { type Room } from '@mikewesthad/dungeon';
+import { type Room } from '@mikewesthad/dungeon';
 import Phaser from 'phaser';
 
+import { Coin } from '~/components/game/entities/coin';
+import { type DungeonGameScene } from '~/components/game/scenes';
+import { gameState } from '~/components/game/state';
+
+import { coins, pickRandomCoin } from '../helpers/game';
 import { TILES } from './tile-mappings';
 
 export const preload = (scene: Phaser.Scene) => {
@@ -18,6 +23,22 @@ export const preload = (scene: Phaser.Scene) => {
       spacing: 2,
     }
   );
+
+  scene.load.spritesheet('chest', '../../../public/dungeon/chest.png', {
+    frameWidth: 16,
+    frameHeight: 16,
+  });
+
+  for (const coin of coins) {
+    scene.load.spritesheet(
+      coin.key,
+      `../../../public/dungeon/coins/${coin.key}.png`,
+      {
+        frameWidth: 16,
+        frameHeight: 16,
+      }
+    );
+  }
 };
 
 export const initializeMovement = (
@@ -39,6 +60,8 @@ export const initializeMovement = (
   const speed = 300;
 
   if (!keys) return;
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- could be
+  if (!sprite.body) return;
 
   const prevVelocity = sprite.body.velocity.clone();
 
@@ -84,19 +107,8 @@ export const initializeMovement = (
   }
 };
 
-export const createMap = (
-  scene: Phaser.Scene,
-  setSprite: (sprite: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody) => void
-) => {
-  const dungeon = new Dungeon({
-    width: 50,
-    height: 50,
-    doorPadding: 2,
-    rooms: {
-      width: { min: 7, max: 15, onlyOdd: true },
-      height: { min: 7, max: 15, onlyOdd: true },
-    },
-  });
+export const createMap = (scene: DungeonGameScene) => {
+  const dungeon = scene.dungeon;
 
   scene.add.image(0, 0, 'tiles');
 
@@ -107,7 +119,9 @@ export const createMap = (
     height: dungeon.height,
   });
   const tileset = map.addTilesetImage('tileset', 'tiles', 48, 48, 1, 2); // 1px margin, 2px spacing
-  if (!tileset) return;
+  if (!tileset) {
+    throw new Error('Tileset not found');
+  }
   const groundLayer = map
     .createBlankLayer('Ground', tileset)
     ?.fill(TILES.BLANK);
@@ -117,8 +131,12 @@ export const createMap = (
   //   .createBlankLayer('Shadow', tileset)
   //   ?.fill(TILES.BLANK);
 
-  if (!groundLayer) return;
-  if (!stuffLayer) return;
+  if (!groundLayer) {
+    throw new Error('Ground layer not found');
+  }
+  if (!stuffLayer) {
+    throw new Error('Stuff layer not found');
+  }
 
   dungeon.rooms.forEach((room) => {
     const { x, y, width, height, left, right, top, bottom } = room;
@@ -161,32 +179,15 @@ export const createMap = (
     // Dungeons have rooms that are connected with doors. Each door has an x & y relative to the
     // room's location. Each direction has a different door to tile mapping.
     const doors = room.getDoorLocations(); // → Returns an array of {x, y} objects
-    // eslint-disable-next-line @typescript-eslint/prefer-for-of -- temp
-    for (let i = 0; i < doors.length; i++) {
-      if (doors[i]!.y === 0) {
-        groundLayer.putTilesAt(
-          TILES.DOOR.TOP,
-          x + doors[i]!.x - 1,
-          y + doors[i]!.y
-        );
-      } else if (doors[i]!.y === room.height - 1) {
-        groundLayer.putTilesAt(
-          TILES.DOOR.BOTTOM,
-          x + doors[i]!.x - 1,
-          y + doors[i]!.y
-        );
-      } else if (doors[i]!.x === 0) {
-        groundLayer.putTilesAt(
-          TILES.DOOR.LEFT,
-          x + doors[i]!.x,
-          y + doors[i]!.y - 1
-        );
-      } else if (doors[i]!.x === room.width - 1) {
-        groundLayer.putTilesAt(
-          TILES.DOOR.RIGHT,
-          x + doors[i]!.x,
-          y + doors[i]!.y - 1
-        );
+    for (const door of doors) {
+      if (door.y === 0) {
+        groundLayer.putTilesAt(TILES.DOOR.TOP, x + door.x - 1, y + door.y);
+      } else if (door.y === room.height - 1) {
+        groundLayer.putTilesAt(TILES.DOOR.BOTTOM, x + door.x - 1, y + door.y);
+      } else if (door.x === 0) {
+        groundLayer.putTilesAt(TILES.DOOR.LEFT, x + door.x, y + door.y - 1);
+      } else if (door.x === room.width - 1) {
+        groundLayer.putTilesAt(TILES.DOOR.RIGHT, x + door.x, y + door.y - 1);
       }
     }
   });
@@ -232,81 +233,72 @@ export const createMap = (
     }
   });
 
-  // // Not exactly correct for the tileset since there are more possible floor tiles, but scene will
-  // // do for the example.
   groundLayer.setCollisionByExclusion([-1, 6, 7, 8, 26]);
   stuffLayer.setCollisionByExclusion([-1, 6, 7, 8, 26]);
 
   stuffLayer.setTileIndexCallback(
     TILES.STAIRS,
     () => {
-      stuffLayer.setTileIndexCallback(
-        TILES.STAIRS,
-        () => {
-          return true;
-        },
-        {}
-      );
-      // scene.hasPlayerReachedStairs = true;
-      // scene.player.freeze();
+      stuffLayer.setTileIndexCallback(TILES.STAIRS, () => true, {});
+      // TODO: Handle player reach stairs
+      scene.player.freeze();
       const cam = scene.cameras.main;
       cam.fade(250, 0, 0, 0);
       cam.once('camerafadeoutcomplete', () => {
-        // scene.player.destroy();
+        gameState.incrementLevel();
+        scene.player.destroy();
         scene.scene.restart();
       });
     },
     {}
   );
 
-  if (!startRoom) return;
+  if (!startRoom) {
+    throw new Error('Start room not found');
+  }
 
   const playerRoom = startRoom;
   const x = map.tileToWorldX(playerRoom.centerX)!;
   const y = map.tileToWorldY(playerRoom.centerY)!;
 
-  const anims = scene.anims;
-
-  scene.anims.create({
-    key: 'player-walk',
-    frames: anims.generateFrameNumbers('characters', {
-      start: 46,
-      end: 49,
-    }),
-    frameRate: 8,
-    repeat: -1,
-  });
-  anims.create({
-    key: 'player-walk-back',
-    frames: anims.generateFrameNumbers('characters', {
-      start: 65,
-      end: 68,
-    }),
-    frameRate: 8,
-    repeat: -1,
-  });
-
-  console.log(scene.data);
-
-  const sprite = scene.physics.add
-    .sprite(x, y, 'characters', 0)
-    .setSize(22, 33)
-    .setOffset(23, 27);
-
-  sprite.anims.play('player-walk-back');
-
-  // Watch the player and tilemap layers for collisions, for the duration of the scene:
-  scene.physics.add.collider(sprite, groundLayer);
-  scene.physics.add.collider(sprite, stuffLayer);
-
-  // Phaser supports multiple cameras, but you can access the default camera like scene:
-  const camera = scene.cameras.main;
-
-  // Constrain the camera so that it isn't allowed to move outside the width/height of tilemap
-  camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-  camera.startFollow(sprite);
-
-  scene.input.keyboard?.createCursorKeys();
-
-  setSprite(sprite);
+  return {
+    map,
+    tileset,
+    startX: x,
+    startY: y,
+    groundLayer,
+    stuffLayer,
+    mapHeight: map.heightInPixels,
+    mapWidth: map.widthInPixels,
+  };
 };
+
+export function placeCoins(
+  this: DungeonGameScene,
+  map: Phaser.Tilemaps.Tilemap,
+  stuffLayer: Phaser.Tilemaps.TilemapLayer
+) {
+  // Place Coins
+  const coins: Coin[] = [];
+  this.dungeon.rooms.forEach((room) => {
+    const maxCoinsperRoom = (room.width * room.height) / 50; // 1% of the tiles in the room
+    const coinsInRoom = Phaser.Math.Between(1, maxCoinsperRoom);
+    for (let i = 0; i < coinsInRoom; i++) {
+      const x = Phaser.Math.Between(room.left + 2, room.right - 2);
+      const y = Phaser.Math.Between(room.top + 2, room.bottom - 2);
+      const xWorld = map.tileToWorldX(x)!;
+      const yWorld = map.tileToWorldY(y)!;
+      const existing = stuffLayer.getTileAtWorldXY(
+        xWorld,
+        yWorld
+      ) as Phaser.Tilemaps.Tile | null;
+      const c = pickRandomCoin();
+      if (!existing) {
+        const coin = new Coin(this, xWorld, yWorld, c?.key ?? 'silver');
+        coins.push(coin);
+      }
+    }
+  });
+
+  return coins;
+}
