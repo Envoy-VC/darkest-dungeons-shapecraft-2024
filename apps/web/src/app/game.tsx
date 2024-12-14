@@ -25,7 +25,7 @@ export const GameComponent = () => {
 
   return (
     <div>
-      <Score />
+      <GameDetails />
       <div ref={gameContainerRef} id='game-container' />
     </div>
   );
@@ -35,7 +35,19 @@ export const Route = createFileRoute('/game')({
   component: GameComponent,
 });
 
-const Score = observer(() => {
+const GameDetails = observer(() => {
+  if (gameState.activeScene === 'game')
+    return (
+      <>
+        <PlayerHealth />
+        <PlayerScore />
+        <RoundTimer />
+        <CurrentRound />
+      </>
+    );
+});
+
+const RoundTimer = observer(() => {
   const currentRound = gameState.times.find((t) => t.round === gameState.level);
 
   const [time, setTime] = useState<number>(0);
@@ -54,42 +66,51 @@ const Score = observer(() => {
   }, [currentRound]);
 
   return (
-    <div className='absolute top-4 right-4 z-[2] flex w-full max-w-sm flex-col gap-3 rounded-xl bg-accent p-4 text-xl'>
-      <div>Score: {gameState.score}</div>
-      <div>Player Health: {gameState.playerHealth}</div>
-      <div>Player Lives: {gameState.totalLives}</div>
-      <div>Current Level: {gameState.level}</div>
-      <div>Current Round: {time ? (time / 1000).toFixed(2) : '0'} seconds</div>
-      <button
-        type='button'
-        onClick={() => {
-          console.log(
-            gameState.times.map((time) => ({
-              start: time.start,
-              end: time.end,
-              round: time.round,
-            }))
-          );
-        }}
-      >
-        Log Rounds
-      </button>
-      <div className='flex flex-col'>
-        {gameState.times
-          .filter((time) => time.end !== undefined)
-          .map((round) => {
-            if (round.end) {
-              return (
-                <div key={round.round}>
-                  Round {round.round}:{' '}
-                  {((round.end - round.start) / 1000).toFixed(2)} seconds
-                </div>
-              );
-            }
-
-            return null;
-          })}
+    <div className='absolute bottom-4 left-4'>
+      <div className='text-xl'>
+        Current Round: {time ? (time / 1000).toFixed(2) : '0'} seconds
       </div>
+    </div>
+  );
+});
+
+const PlayerHealth = observer(() => {
+  const totalLives = Array.from({ length: gameState.totalLives }, (_, i) => i);
+
+  return (
+    <div className='absolute top-4 left-4 flex flex-col gap-4'>
+      <div className='flex flex-row items-center gap-4'>
+        {totalLives.map((_, i) => (
+          <img
+            key={`heart-${String(i)}`}
+            alt='heart'
+            className='h-8 w-8'
+            src='/heart.png'
+          />
+        ))}
+      </div>
+      <div className='flex h-2 w-[200px] items-center justify-start rounded-[6px] bg-accent'>
+        <div
+          className='h-2 rounded-[5px] bg-red-500'
+          style={{ width: `${String(gameState.playerHealth)}%` }}
+        />
+      </div>
+    </div>
+  );
+});
+
+const PlayerScore = observer(() => {
+  return (
+    <div className='absolute top-8 right-8 flex flex-col gap-4'>
+      <div className='font-golondrina text-6xl'>{gameState.score}</div>
+    </div>
+  );
+});
+
+const CurrentRound = observer(() => {
+  return (
+    <div className='absolute top-12 right-1/2 flex translate-x-1/2 flex-col gap-4'>
+      <div className='font-golondrina text-6xl'>Round: {gameState.level}</div>
     </div>
   );
 });

@@ -82,6 +82,14 @@ export class DungeonGameScene extends Phaser.Scene {
 
     camera.setBounds(0, 0, args.mapWidth, args.mapHeight);
     camera.startFollow(this.player.sprite);
+
+    this.input.keyboard?.on('keydown-ESC', () => {
+      gameState.reset();
+      this.coins = [];
+      this.enemies = [];
+      gameState.activeScene = 'game-over';
+      this.scene.start('GameOverScene');
+    });
   }
 
   private onPlayerEnemyCollision(player: Player, enemy: Enemy) {

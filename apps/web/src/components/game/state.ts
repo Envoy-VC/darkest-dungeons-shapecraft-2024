@@ -11,9 +11,11 @@ export class GameState {
   public isDying = false;
   public totalLives = 3;
   public times: { round: number; start: number; end?: number }[] = [];
+  public activeScene: 'home' | 'game' | 'game-over';
 
   constructor() {
     makeAutoObservable(this);
+    this.activeScene = 'home';
   }
 
   public incrementLevel() {
@@ -68,6 +70,8 @@ export class GameState {
     this.isHurting = false;
     this.isDying = false;
     this.totalLives = 3;
+    this.times = [];
+    this.activeScene = 'home';
   }
 }
 

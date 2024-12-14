@@ -234,6 +234,7 @@ export class Player {
           scene.coins = [];
           scene.enemies = [];
           gameState.reset();
+          gameState.activeScene = 'game-over';
           scene.scene.start('GameOverScene');
         } else {
           gameState.incrementHealth(100);

@@ -1,12 +1,12 @@
 import Phaser from 'phaser';
 
-import { DungeonGameScene, GameOverScene } from './scenes';
+import { DungeonGameScene, GameOverScene, HomeScene } from './scenes';
 
 const config: Phaser.Types.Core.GameConfig = {
   width: 800,
   height: 600,
   type: Phaser.AUTO,
-  scene: [DungeonGameScene, GameOverScene],
+  scene: [HomeScene, DungeonGameScene, GameOverScene],
   scale: {
     width: '100%',
     height: '100%',
