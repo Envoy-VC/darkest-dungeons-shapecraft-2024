@@ -105,6 +105,10 @@ export const createMap = (scene: DungeonGameScene) => {
     throw new Error('Stuff layer not found');
   }
 
+  scene.tilemap = map;
+  scene.groundLayer = groundLayer;
+  scene.stuffLayer = stuffLayer;
+
   dungeon.rooms.forEach((room) => {
     const { x, y, width, height, left, right, top, bottom } = room;
     // Fill the floor with mostly clean tiles
@@ -226,9 +230,10 @@ export const createMap = (scene: DungeonGameScene) => {
     throw new Error('Start room not found');
   }
 
-  const playerRoom = startRoom;
-  const x = map.tileToWorldX(playerRoom.centerX)!;
-  const y = map.tileToWorldY(playerRoom.centerY)!;
+  scene.startRoom = startRoom;
+
+  const x = map.tileToWorldX(startRoom.centerX)!;
+  const y = map.tileToWorldY(startRoom.centerY)!;
 
   return {
     map,

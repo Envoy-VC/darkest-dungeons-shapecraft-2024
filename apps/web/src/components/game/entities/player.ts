@@ -91,7 +91,7 @@ export class Player {
 
           this.scene.time.delayedCall(1000, () => {
             gameState.setAttacking(false);
-            enemy.onHitByPlayer();
+            enemy.onHitByPlayer(this.scene);
           });
         }
       }
@@ -99,13 +99,14 @@ export class Player {
   }
 
   update(scene: DungeonGameScene) {
-    if (gameState.playerHealth <= 0) {
+    // Priority => Death > Attack > Hurt > Walk > Idle
+    if (gameState.isDying) {
       this.sprite.anims.play('death', true);
       return;
     }
 
     if (gameState.isAttacking) {
-      // Attack animation has priority
+      this.sprite.body.setVelocity(0, 0);
       this.sprite.anims.play('attack', true);
       return;
     }
@@ -141,8 +142,6 @@ export class Player {
     if (spaceKey.space.isDown) {
       this.attack(scene.enemies, scene.time.now);
     }
-
-    const prevVelocity = this.sprite.body.velocity.clone();
 
     this.sprite.body.setVelocity(0);
 
@@ -185,23 +184,38 @@ export class Player {
       this.sprite.anims.play('walk', true);
     } else {
       this.sprite.anims.stop();
-
-      // If we were moving, pick and idle frame to use
-      if (prevVelocity.y < 0) {
-        // this.sprite.setTexture('characters', 65);
-        this.sprite.anims.play('idle', true);
-      } else {
-        this.sprite.anims.play('idle', true);
-      }
-      // else this.sprite.setTexture('characters', 46);
+      this.sprite.anims.play('idle', true);
     }
   }
 
-  onHitByEnemy(dps: number) {
-    gameState.setHurting(true);
-    this.scene.time.delayedCall(1000, () => {
-      gameState.setHurting(false);
-    });
+  onHitByEnemy(scene: DungeonGameScene, dps: number) {
+    const isDead = gameState.getHealth() - dps <= 0;
+    if (isDead) {
+      gameState.setDying(true);
+      this.scene.time.delayedCall(1000, () => {
+        gameState.setDying(false);
+        gameState.decreaseLives();
+        if (gameState.totalLives <= 0) {
+          scene.coins = [];
+          scene.enemies = [];
+          gameState.reset();
+          scene.scene.start('GameOverScene');
+        } else {
+          gameState.incrementHealth(100);
+          scene.player.sprite.anims.play('idle', true);
+          const x = scene.tilemap.tileToWorldX(scene.startRoom.centerX);
+          const y = scene.tilemap.tileToWorldY(scene.startRoom.centerY);
+          if (!x || !y) return;
+          scene.player.sprite.setPosition(x, y);
+        }
+      });
+    } else {
+      gameState.setHurting(true);
+      this.scene.time.delayedCall(1000, () => {
+        gameState.setHurting(false);
+      });
+    }
+
     gameState.decrementHealth(dps);
   }
 

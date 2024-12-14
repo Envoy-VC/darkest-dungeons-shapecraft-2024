@@ -40,6 +40,8 @@ const Score = observer(() => {
     <div className='absolute top-4 right-4 z-[2] flex flex-col gap-3 rounded-xl bg-accent p-4 text-xl'>
       <div>Score: {gameState.score}</div>
       <div>Player Health: {gameState.playerHealth}</div>
+      <div>Player Lives: {gameState.totalLives}</div>
+      <div>Current Level: {gameState.level}</div>
     </div>
   );
 });

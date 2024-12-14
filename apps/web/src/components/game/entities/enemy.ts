@@ -5,7 +5,6 @@ import Phaser from 'phaser';
 import type { DungeonGameScene } from '../scenes';
 import { gameState } from '../state';
 import { HealthBar } from './healthbar';
-import type { Player } from './player';
 
 export class Enemy {
   public sprite: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody | undefined;
@@ -55,9 +54,10 @@ export class Enemy {
     }
   }
 
-  public attack(player: Player, currentTime: number): void {
+  public attack(scene: DungeonGameScene): void {
     if (!this.sprite) return;
-    if (currentTime - this.lastAttackTime > this.enemyType.attackCooldown) {
+    const player = scene.player;
+    if (scene.time.now - this.lastAttackTime > this.enemyType.attackCooldown) {
       const distance = Phaser.Math.Distance.Between(
         this.sprite.x,
         this.sprite.y,
@@ -65,25 +65,44 @@ export class Enemy {
         player.sprite.y
       );
       if (distance < this.enemyType.minDistance) {
-        player.onHitByEnemy(this.enemyType.dps);
-        this.lastAttackTime = currentTime;
+        if (this.hasLineOfSightToPlayer(player.sprite, scene.groundLayer)) {
+          player.onHitByEnemy(scene, this.enemyType.dps);
+          this.lastAttackTime = scene.time.now;
+        }
       }
     }
   }
 
-  // Method to handle when the enemy is attacked by the player
-  public onHitByPlayer(): void {
-    this.health -= 30; // Reduce enemy health
+  public onHitByPlayer(scene: Phaser.Scene): void {
+    this.health -= 30;
     if (this.health <= 0) {
       this.destroy();
     }
+    this.lastAttackTime = scene.time.now;
     this.healthBar.takeDamage(30);
+  }
+
+  hasLineOfSightToPlayer(
+    player: Phaser.Physics.Arcade.Sprite,
+    tilemapLayer: Phaser.Tilemaps.TilemapLayer
+  ): boolean {
+    if (!this.sprite) return false;
+    const enemyX = this.sprite.x;
+    const enemyY = this.sprite.y;
+    const playerX = player.x;
+    const playerY = player.y;
+
+    const line = new Phaser.Geom.Line(enemyX, enemyY, playerX, playerY);
+
+    const tiles = tilemapLayer.getTilesWithinShape(line, { isColliding: true });
+
+    return tiles.length === 0;
   }
 
   update(scene: DungeonGameScene) {
     if (!this.sprite) return;
     this.moveTowardPlayer(scene);
-    this.attack(scene.player, scene.time.now);
+    this.attack(scene);
     this.healthBar.updateHealthBarPosition();
 
     const velocityX = this.sprite.body.velocity.x;

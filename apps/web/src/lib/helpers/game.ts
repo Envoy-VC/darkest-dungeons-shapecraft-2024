@@ -88,22 +88,22 @@ export interface EnemyType {
 }
 
 export const enemies: EnemyType[] = [
-  // {
-  //   key: 'skeleton',
-  //   weight: 30,
-  //   maxHealth: 50,
-  //   dps: 1,
-  //   movementSpeed: 100,
-  //   attackCooldown: 2000,
-  //   pointsOnKill: 100,
-  //   maxDistance: 200,
-  //   minDistance: 30,
-  // },
+  {
+    key: 'skeleton',
+    weight: 30,
+    maxHealth: 50,
+    dps: 1,
+    movementSpeed: 100,
+    attackCooldown: 2000,
+    pointsOnKill: 100,
+    maxDistance: 200,
+    minDistance: 50,
+  },
   {
     key: 'archer',
     weight: 10,
     maxHealth: 100,
-    dps: 3,
+    dps: 5,
     movementSpeed: 70,
     attackCooldown: 3000,
     pointsOnKill: 150,

@@ -3,6 +3,7 @@ import { generateDungeon } from '~/lib/helpers/game';
 import * as Actions from '~/lib/game/actions';
 
 import type Dungeon from '@mikewesthad/dungeon';
+import type { Room } from '@mikewesthad/dungeon';
 import Phaser from 'phaser';
 
 import { type Coin, type Enemy, Player } from '../entities';
@@ -10,12 +11,16 @@ import { gameState } from '../state';
 
 export class DungeonGameScene extends Phaser.Scene {
   public dungeon!: Dungeon;
+  public startRoom!: Room;
   public player!: Player;
+  public tilemap!: Phaser.Tilemaps.Tilemap;
+  public groundLayer!: Phaser.Tilemaps.TilemapLayer;
+  public stuffLayer!: Phaser.Tilemaps.TilemapLayer;
   public coins: Coin[] = [];
   public enemies: Enemy[] = [];
 
   constructor() {
-    super('DungeonGameScene');
+    super({ key: 'GameScene' });
   }
 
   init() {
@@ -70,7 +75,7 @@ export class DungeonGameScene extends Phaser.Scene {
 
   private onPlayerEnemyCollision(player: Player, enemy: Enemy) {
     // Enemy Attacks Player
-    enemy.attack(player, this.time.now);
+    enemy.attack(this);
   }
 
   update() {

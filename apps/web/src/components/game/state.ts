@@ -8,6 +8,8 @@ export class GameState {
   public playerHealth = 100;
   public isAttacking = false;
   public isHurting = false;
+  public isDying = false;
+  public totalLives = 3;
 
   constructor() {
     makeAutoObservable(this);
@@ -17,12 +19,24 @@ export class GameState {
     this.level++;
   }
 
+  public decreaseLives() {
+    this.totalLives--;
+  }
+
+  public increaseLives() {
+    this.totalLives++;
+  }
+
   public setAttacking(isAttacking: boolean) {
     this.isAttacking = isAttacking;
   }
 
   public setHurting(isHurting: boolean) {
     this.isHurting = isHurting;
+  }
+
+  public setDying(isDying: boolean) {
+    this.isDying = isDying;
   }
 
   public getHealth() {
@@ -43,6 +57,16 @@ export class GameState {
 
   public incrementScore(points: number) {
     this.score += points;
+  }
+
+  public reset() {
+    this.level = 1;
+    this.score = 0;
+    this.playerHealth = 100;
+    this.isAttacking = false;
+    this.isHurting = false;
+    this.isDying = false;
+    this.totalLives = 3;
   }
 }
 
