@@ -17,43 +17,31 @@ import {
 import { TILES } from './tile-mappings';
 
 export const preload = (scene: Phaser.Scene) => {
-  scene.load.image('tiles', '../../../public/dungeon/dungeon-tileset.png');
-  scene.load.spritesheet(
-    'characters',
-    '../../../public/dungeon/character.png',
-    {
-      frameWidth: 64,
-      frameHeight: 64,
-      margin: 1,
-      spacing: 2,
-    }
-  );
+  scene.load.image('tiles', '/dungeon/dungeon-tileset.png');
+  scene.load.spritesheet('characters', '/dungeon/character.png', {
+    frameWidth: 64,
+    frameHeight: 64,
+    margin: 1,
+    spacing: 2,
+  });
 
-  scene.load.spritesheet('chest', '../../../public/dungeon/chest.png', {
+  scene.load.spritesheet('chest', '/dungeon/chest.png', {
     frameWidth: 16,
     frameHeight: 16,
   });
 
   enemies.forEach((enemy) => {
-    scene.load.spritesheet(
-      enemy.key,
-      `../../../public/dungeon/enemies/${enemy.key}.png`,
-      {
-        frameWidth: 16,
-        frameHeight: 16,
-      }
-    );
+    scene.load.spritesheet(enemy.key, `/dungeon/enemies/${enemy.key}.png`, {
+      frameWidth: 16,
+      frameHeight: 16,
+    });
   });
 
   for (const coin of coins) {
-    scene.load.spritesheet(
-      coin.key,
-      `../../../public/dungeon/coins/${coin.key}.png`,
-      {
-        frameWidth: 16,
-        frameHeight: 16,
-      }
-    );
+    scene.load.spritesheet(coin.key, `/dungeon/coins/${coin.key}.png`, {
+      frameWidth: 16,
+      frameHeight: 16,
+    });
   }
 };
 
