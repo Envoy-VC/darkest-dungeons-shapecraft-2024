@@ -73,6 +73,15 @@ export const preload = (scene: Phaser.Scene) => {
       frameHeight: 16,
     });
   }
+
+  scene.load.audio('walkSound', '/dungeon/sounds/walk.wav');
+  scene.load.audio('playerAttackSound', '/dungeon/sounds/player-attack.wav');
+  scene.load.audio('enemyDeadSound', '/dungeon/sounds/enemy-dead.wav');
+  scene.load.audio('enemyAttackSound', '/dungeon/sounds/enemy-attack.wav');
+  scene.load.audio('playerDeadSound', '/dungeon/sounds/player-dead.wav');
+  scene.load.audio('coinPickupSound', '/dungeon/sounds/coin.ogg');
+
+  scene.load.audio('soundtrack', '/dungeon/sounds/soundtrack.wav');
 };
 
 export const createMap = (scene: DungeonGameScene) => {
@@ -222,7 +231,7 @@ export const createMap = (scene: DungeonGameScene) => {
     TILES.STAIRS,
     () => {
       stuffLayer.setTileIndexCallback(TILES.STAIRS, () => true, {});
-      // TODO: Handle player reach stairs
+      scene.endRound();
       scene.player.freeze();
       const cam = scene.cameras.main;
       cam.fade(250, 0, 0, 0);
@@ -231,6 +240,7 @@ export const createMap = (scene: DungeonGameScene) => {
         scene.player.destroy();
         scene.enemies = [];
         scene.coins = [];
+
         scene.scene.restart();
       });
     },

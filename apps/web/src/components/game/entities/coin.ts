@@ -4,11 +4,13 @@ import type { Room } from '@mikewesthad/dungeon';
 
 import { gameState } from '../state';
 
+type SoundTypes = 'pickup';
 export class Coin {
   public scene: Phaser.Scene;
-  public sprite: Phaser.GameObjects.Sprite;
+  public sprite: Phaser.Types.Physics.Arcade.SpriteWithStaticBody;
   public type: CoinType;
   public room: Room;
+  public sounds: Record<SoundTypes, Phaser.Sound.BaseSound>;
 
   constructor(
     scene: Phaser.Scene,
@@ -24,11 +26,18 @@ export class Coin {
     this.sprite = scene.physics.add.staticSprite(x, y, type.key);
     this.sprite.setScale(2);
     this.sprite.play(`coin-${type.key}`);
+    this.sprite.body.setSize(32, 32);
+
+    const pickupSound = scene.sound.add('coinPickupSound');
+    this.sounds = {
+      pickup: pickupSound,
+    };
   }
 
   pickup() {
     this.sprite.destroy();
     gameState.addCoin(this.type);
+    this.sounds.pickup.play();
     gameState.incrementHealth(this.type.healthRegeneration);
   }
 

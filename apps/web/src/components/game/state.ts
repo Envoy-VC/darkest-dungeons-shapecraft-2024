@@ -10,6 +10,7 @@ export class GameState {
   public isHurting = false;
   public isDying = false;
   public totalLives = 3;
+  public times: { round: number; start: number; end?: number }[] = [];
 
   constructor() {
     makeAutoObservable(this);

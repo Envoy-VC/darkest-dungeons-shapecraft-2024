@@ -10,6 +10,8 @@ import { type Coin, type Enemy, Player } from '../entities';
 import { gameState } from '../state';
 import type { TilemapVisibility } from '../tilemap-visibility';
 
+type SoundTypes = 'soundtrack';
+
 export class DungeonGameScene extends Phaser.Scene {
   public dungeon!: Dungeon;
   public startRoom!: Room;
@@ -20,6 +22,7 @@ export class DungeonGameScene extends Phaser.Scene {
   public tilemapVisibility!: TilemapVisibility;
   public coins: Coin[] = [];
   public enemies: Enemy[] = [];
+  public sounds!: Record<SoundTypes, Phaser.Sound.BaseSound>;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -35,6 +38,11 @@ export class DungeonGameScene extends Phaser.Scene {
   }
 
   create() {
+    this.sounds = {
+      soundtrack: this.sound.add('soundtrack', { loop: true }),
+    };
+
+    this.sounds.soundtrack.play({ volume: 0.2 });
     Actions.createAnimations(this);
     const args = Actions.createMap(this);
     this.player = new Player(this, args.startX, args.startY);
@@ -79,6 +87,20 @@ export class DungeonGameScene extends Phaser.Scene {
   private onPlayerEnemyCollision(player: Player, enemy: Enemy) {
     // Enemy Attacks Player
     enemy.attack(this);
+  }
+
+  startRound() {
+    const existing = gameState.times.find((t) => t.round === gameState.level);
+    if (existing) return;
+    console.log('Starting round', gameState.level);
+    gameState.times.push({ round: gameState.level, start: Date.now() });
+  }
+
+  endRound() {
+    const existing = gameState.times.find((t) => t.round === gameState.level);
+    if (existing) {
+      existing.end = Date.now();
+    }
   }
 
   update() {

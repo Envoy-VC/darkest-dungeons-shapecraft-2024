@@ -7,6 +7,8 @@ import type { DungeonGameScene } from '../scenes';
 import { gameState } from '../state';
 import { HealthBar } from './healthbar';
 
+type SoundTypes = 'dead' | 'attack';
+
 export class Enemy {
   public sprite: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody | undefined;
   public health: number;
@@ -15,6 +17,7 @@ export class Enemy {
   public enemyType: EnemyType;
   public room: Room;
   public isHidden: boolean;
+  public sounds: Record<SoundTypes, Phaser.Sound.BaseSound>;
 
   constructor(
     scene: DungeonGameScene,
@@ -37,6 +40,14 @@ export class Enemy {
 
     this.sprite.setVisible(false);
     this.healthBar.setVisible(false);
+
+    const deadSound = scene.sound.add('enemyDeadSound');
+    const attackSound = scene.sound.add('enemyAttackSound');
+
+    this.sounds = {
+      dead: deadSound,
+      attack: attackSound,
+    };
   }
 
   freeze() {
@@ -80,6 +91,7 @@ export class Enemy {
       );
       if (distance < this.enemyType.minDistance) {
         if (this.hasLineOfSightToPlayer(player.sprite, scene.groundLayer)) {
+          this.sounds.attack.play();
           player.onHitByEnemy(scene, this.enemyType.dps);
           this.lastAttackTime = scene.time.now;
         }
@@ -89,11 +101,12 @@ export class Enemy {
 
   public onHitByPlayer(scene: Phaser.Scene): void {
     this.health -= 30;
-    if (this.health <= 0) {
-      this.destroy();
-    }
     this.lastAttackTime = scene.time.now;
     this.healthBar.takeDamage(30);
+    if (this.health <= 0) {
+      this.sounds.dead.play();
+      this.destroy();
+    }
   }
 
   hasLineOfSightToPlayer(

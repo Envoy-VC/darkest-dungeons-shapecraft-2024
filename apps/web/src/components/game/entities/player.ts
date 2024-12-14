@@ -4,11 +4,15 @@ import { type DungeonGameScene } from '../scenes';
 import { gameState } from '../state';
 import { type Enemy } from './enemy';
 
+type SoundTypes = 'walk' | 'attack' | 'dead';
+
 export class Player {
   public scene: Phaser.Scene;
   public sprite: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
   public attackCooldown: number;
   public lastAttackTime: number;
+  public sounds: Record<SoundTypes, Phaser.Sound.BaseSound>;
+  public isWalking: boolean;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     this.attackCooldown = 2000; // Attack cooldown in milliseconds
@@ -21,7 +25,19 @@ export class Player {
     this.sprite = scene.physics.add.sprite(x, y, 'Soldier-Idle', 0).setScale(3);
     this.sprite.body.setSize(12, 12);
 
-    scene.input.keyboard?.createCursorKeys();
+    const walkSound = scene.sound.add('walkSound', { loop: true });
+    const attackSound = scene.sound.add('playerAttackSound');
+    const deadSound = scene.sound.add('playerDeadSound');
+
+    this.sounds = {
+      walk: walkSound,
+      attack: attackSound,
+      dead: deadSound,
+    };
+
+    this.isWalking = false;
+
+    this.scene.input.keyboard?.createCursorKeys();
   }
 
   createAnimations() {
@@ -88,6 +104,7 @@ export class Player {
         if (distance < 50) {
           gameState.setAttacking(true);
           this.lastAttackTime = currentTime;
+          this.sounds.attack.play();
 
           this.scene.time.delayedCall(1000, () => {
             gameState.setAttacking(false);
@@ -135,6 +152,8 @@ export class Player {
     };
     const speed = 300;
 
+    let moving = false;
+
     if (!keys) return;
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- could be
     if (!this.sprite.body) return;
@@ -145,24 +164,30 @@ export class Player {
 
     this.sprite.body.setVelocity(0);
 
+    const walkAnim = () => {
+      scene.startRound();
+      this.sprite.anims.play('walk', true);
+      moving = true;
+    };
+
     // Horizontal movement
     if (keys.left.isDown || wasd.a.isDown) {
       this.sprite.body.setVelocityX(-speed);
       this.sprite.setFlipX(true);
-      this.sprite.anims.play('walk', true);
+      walkAnim();
     } else if (keys.right.isDown || wasd.d.isDown) {
       this.sprite.body.setVelocityX(speed);
       this.sprite.setFlipX(false);
-      this.sprite.anims.play('walk', true);
+      walkAnim();
     }
 
     // Vertical movement
     if (keys.up.isDown || wasd.w.isDown) {
       this.sprite.body.setVelocityY(-speed);
-      this.sprite.anims.play('walk', true);
+      walkAnim();
     } else if (keys.down.isDown || wasd.s.isDown) {
       this.sprite.body.setVelocityY(speed);
-      this.sprite.anims.play('walk', true);
+      walkAnim();
     }
 
     // Normalize and scale the velocity so that sprite can't move faster along a diagonal
@@ -177,20 +202,30 @@ export class Player {
       wasd.d.isDown ||
       wasd.s.isDown
     ) {
-      // this.sprite.anims.play('player-walk', true);
-      this.sprite.anims.play('walk', true);
+      scene.startRound();
+      walkAnim();
     } else if (keys.up.isDown || wasd.w.isDown) {
-      // this.sprite.anims.play('player-walk-back', true);
-      this.sprite.anims.play('walk', true);
+      walkAnim();
     } else {
       this.sprite.anims.stop();
       this.sprite.anims.play('idle', true);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- not falsy
+    if (moving && !this.isWalking) {
+      this.sounds.walk.play();
+      this.isWalking = true;
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- not truthy
+    } else if (!moving && this.isWalking) {
+      this.sounds.walk.stop();
+      this.isWalking = false;
     }
   }
 
   onHitByEnemy(scene: DungeonGameScene, dps: number) {
     const isDead = gameState.getHealth() - dps <= 0;
     if (isDead) {
+      this.sounds.dead.play();
       gameState.setDying(true);
       this.scene.time.delayedCall(1000, () => {
         gameState.setDying(false);
