@@ -15,33 +15,60 @@ export class Player {
     this.lastAttackTime = 0;
 
     this.scene = scene;
-    const anims = scene.anims;
-    anims.create({
-      key: 'player-walk',
-      frames: anims.generateFrameNumbers('characters', {
-        start: 46,
-        end: 49,
-      }),
-      frameRate: 8,
-      repeat: -1,
-    });
-    anims.create({
-      key: 'player-walk-back',
-      frames: anims.generateFrameNumbers('characters', {
-        start: 65,
-        end: 68,
-      }),
-      frameRate: 8,
-      repeat: -1,
-    });
 
-    this.sprite = scene.physics.add
-      .sprite(x, y, 'characters', 0)
-      .setSize(22, 33)
-      .setOffset(23, 27);
+    this.createAnimations();
 
-    this.sprite.anims.play('player-walk-back');
+    this.sprite = scene.physics.add.sprite(x, y, 'Soldier-Idle', 0).setScale(3);
+    this.sprite.body.setSize(12, 12);
+
     scene.input.keyboard?.createCursorKeys();
+  }
+
+  createAnimations() {
+    const anims = this.scene.anims;
+
+    // Idle Animation
+    anims.create({
+      key: 'idle',
+      frames: anims.generateFrameNumbers('Soldier-Idle', { start: 0, end: 5 }),
+      frameRate: 6,
+      repeat: -1,
+    });
+
+    // Walk Animation
+    anims.create({
+      key: 'walk',
+      frames: anims.generateFrameNumbers('Soldier-Walk', { start: 0, end: 7 }),
+      frameRate: 8,
+      repeat: -1,
+    });
+
+    // Attack Animation
+    anims.create({
+      key: 'attack',
+      frames: anims.generateFrameNumbers('Soldier-Attack', {
+        start: 0,
+        end: 5,
+      }),
+      frameRate: 6,
+      repeat: 0,
+    });
+
+    // Hurt Animation
+    anims.create({
+      key: 'hurt',
+      frames: anims.generateFrameNumbers('Soldier-Hurt', { start: 0, end: 3 }),
+      frameRate: 8,
+      repeat: 0,
+    });
+
+    // Death Animation
+    anims.create({
+      key: 'death',
+      frames: anims.generateFrameNumbers('Soldier-Death', { start: 0, end: 3 }),
+      frameRate: 4,
+      repeat: 0,
+    });
   }
 
   freeze() {
@@ -59,14 +86,35 @@ export class Player {
           enemy.sprite.y
         );
         if (distance < 50) {
-          enemy.onHitByPlayer();
+          gameState.setAttacking(true);
           this.lastAttackTime = currentTime;
+
+          this.scene.time.delayedCall(1000, () => {
+            gameState.setAttacking(false);
+            enemy.onHitByPlayer();
+          });
         }
       }
     }
   }
 
   update(scene: DungeonGameScene) {
+    if (gameState.playerHealth <= 0) {
+      this.sprite.anims.play('death', true);
+      return;
+    }
+
+    if (gameState.isAttacking) {
+      // Attack animation has priority
+      this.sprite.anims.play('attack', true);
+      return;
+    }
+
+    if (gameState.isHurting) {
+      this.sprite.anims.play('hurt', true);
+      return;
+    }
+
     const keys = this.scene.input.keyboard?.createCursorKeys();
     const wasd = this.scene.input.keyboard?.addKeys({
       w: Phaser.Input.Keyboard.KeyCodes.W,
@@ -102,16 +150,20 @@ export class Player {
     if (keys.left.isDown || wasd.a.isDown) {
       this.sprite.body.setVelocityX(-speed);
       this.sprite.setFlipX(true);
+      this.sprite.anims.play('walk', true);
     } else if (keys.right.isDown || wasd.d.isDown) {
       this.sprite.body.setVelocityX(speed);
       this.sprite.setFlipX(false);
+      this.sprite.anims.play('walk', true);
     }
 
     // Vertical movement
     if (keys.up.isDown || wasd.w.isDown) {
       this.sprite.body.setVelocityY(-speed);
+      this.sprite.anims.play('walk', true);
     } else if (keys.down.isDown || wasd.s.isDown) {
       this.sprite.body.setVelocityY(speed);
+      this.sprite.anims.play('walk', true);
     }
 
     // Normalize and scale the velocity so that sprite can't move faster along a diagonal
@@ -126,19 +178,30 @@ export class Player {
       wasd.d.isDown ||
       wasd.s.isDown
     ) {
-      this.sprite.anims.play('player-walk', true);
+      // this.sprite.anims.play('player-walk', true);
+      this.sprite.anims.play('walk', true);
     } else if (keys.up.isDown || wasd.w.isDown) {
-      this.sprite.anims.play('player-walk-back', true);
+      // this.sprite.anims.play('player-walk-back', true);
+      this.sprite.anims.play('walk', true);
     } else {
       this.sprite.anims.stop();
 
       // If we were moving, pick and idle frame to use
-      if (prevVelocity.y < 0) this.sprite.setTexture('characters', 65);
-      else this.sprite.setTexture('characters', 46);
+      if (prevVelocity.y < 0) {
+        // this.sprite.setTexture('characters', 65);
+        this.sprite.anims.play('idle', true);
+      } else {
+        this.sprite.anims.play('idle', true);
+      }
+      // else this.sprite.setTexture('characters', 46);
     }
   }
 
   onHitByEnemy(dps: number) {
+    gameState.setHurting(true);
+    this.scene.time.delayedCall(1000, () => {
+      gameState.setHurting(false);
+    });
     gameState.decrementHealth(dps);
   }
 

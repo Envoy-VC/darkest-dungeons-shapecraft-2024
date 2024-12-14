@@ -25,6 +25,35 @@ export const preload = (scene: Phaser.Scene) => {
     spacing: 2,
   });
 
+  const characterSize = 100;
+
+  scene.load.spritesheet(
+    'Soldier-Idle',
+    '/dungeon/character/Soldier-Idle.png',
+    {
+      frameWidth: characterSize,
+      frameHeight: characterSize,
+    }
+  );
+  scene.load.spritesheet('Soldier-Walk', 'dungeon/character/Soldier-Walk.png', {
+    frameWidth: characterSize,
+    frameHeight: characterSize,
+  });
+  scene.load.spritesheet(
+    'Soldier-Attack',
+    'dungeon/character/Soldier-Attack.png',
+    { frameWidth: characterSize, frameHeight: characterSize }
+  );
+  scene.load.spritesheet('Soldier-Hurt', 'dungeon/character/Soldier-Hurt.png', {
+    frameWidth: characterSize,
+    frameHeight: characterSize,
+  });
+  scene.load.spritesheet(
+    'Soldier-Death',
+    'dungeon/character/Soldier-Death.png',
+    { frameWidth: characterSize, frameHeight: characterSize }
+  );
+
   scene.load.spritesheet('chest', '/dungeon/chest.png', {
     frameWidth: 16,
     frameHeight: 16,

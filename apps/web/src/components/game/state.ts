@@ -6,6 +6,8 @@ export class GameState {
   public level = 1;
   public score = 0;
   public playerHealth = 100;
+  public isAttacking = false;
+  public isHurting = false;
 
   constructor() {
     makeAutoObservable(this);
@@ -13,6 +15,14 @@ export class GameState {
 
   public incrementLevel() {
     this.level++;
+  }
+
+  public setAttacking(isAttacking: boolean) {
+    this.isAttacking = isAttacking;
+  }
+
+  public setHurting(isHurting: boolean) {
+    this.isHurting = isHurting;
   }
 
   public getHealth() {
