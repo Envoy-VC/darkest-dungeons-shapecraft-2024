@@ -59,6 +59,11 @@ export class HealthBar {
     this.updateHealthBar();
   }
 
+  setVisible(visible: boolean) {
+    this.healthBarBackground.setVisible(visible);
+    this.healthBarForeground.setVisible(visible);
+  }
+
   destroy() {
     this.healthBarBackground.destroy();
     this.healthBarForeground.destroy();

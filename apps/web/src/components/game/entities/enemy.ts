@@ -1,5 +1,6 @@
 import type { EnemyType } from '~/lib/helpers/game';
 
+import type { Room } from '@mikewesthad/dungeon';
 import Phaser from 'phaser';
 
 import type { DungeonGameScene } from '../scenes';
@@ -12,8 +13,18 @@ export class Enemy {
   public lastAttackTime: number;
   private healthBar: HealthBar;
   public enemyType: EnemyType;
+  public room: Room;
+  public isHidden: boolean;
 
-  constructor(scene: DungeonGameScene, x: number, y: number, type: EnemyType) {
+  constructor(
+    scene: DungeonGameScene,
+    x: number,
+    y: number,
+    type: EnemyType,
+    room: Room
+  ) {
+    this.isHidden = true;
+    this.room = room;
     this.health = type.maxHealth;
     this.lastAttackTime = 0;
     this.enemyType = type;
@@ -23,6 +34,9 @@ export class Enemy {
 
     this.healthBar = new HealthBar(scene, this.sprite, 100);
     this.healthBar.updateHealthBar();
+
+    this.sprite.setVisible(false);
+    this.healthBar.setVisible(false);
   }
 
   freeze() {
@@ -99,8 +113,24 @@ export class Enemy {
     return tiles.length === 0;
   }
 
-  update(scene: DungeonGameScene) {
+  update(scene: DungeonGameScene, activeRoom: Room) {
     if (!this.sprite) return;
+    const enemyTileX = scene.groundLayer.worldToTileX(this.sprite.x);
+    const enemyTileY = scene.groundLayer.worldToTileY(this.sprite.y);
+    const enemyRoom = scene.dungeon.getRoomAt(enemyTileX, enemyTileY);
+
+    if (enemyRoom && enemyRoom !== this.room) {
+      this.room = enemyRoom;
+    }
+
+    if (this.isHidden && enemyRoom) {
+      if (activeRoom === enemyRoom) {
+        this.sprite.setVisible(true);
+        this.healthBar.setVisible(true);
+        this.isHidden = false;
+      }
+    }
+
     this.moveTowardPlayer(scene);
     this.attack(scene);
     this.healthBar.updateHealthBarPosition();

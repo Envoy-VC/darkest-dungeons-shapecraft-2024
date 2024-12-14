@@ -7,6 +7,7 @@ import Phaser from 'phaser';
 import { Coin, Enemy } from '~/components/game/entities';
 import { type DungeonGameScene } from '~/components/game/scenes';
 import { gameState } from '~/components/game/state';
+import { TilemapVisibility } from '~/components/game/tilemap-visibility';
 
 import {
   coins,
@@ -97,6 +98,16 @@ export const createMap = (scene: DungeonGameScene) => {
   // const shadowLayer = map
   //   .createBlankLayer('Shadow', tileset)
   //   ?.fill(TILES.BLANK);
+
+  const shadowLayer = map
+    .createBlankLayer('Shadow', tileset)
+    ?.fill(TILES.BLANK);
+
+  if (!shadowLayer) {
+    throw new Error('Shadow layer not found');
+  }
+
+  scene.tilemapVisibility = new TilemapVisibility(shadowLayer);
 
   if (!groundLayer) {
     throw new Error('Ground layer not found');
@@ -269,7 +280,7 @@ export function placeCoins(
       ) as Phaser.Tilemaps.Tile | null;
       const c = pickRandomCoin();
       if (!existing) {
-        const coin = new Coin(this, xWorld, yWorld, c);
+        const coin = new Coin(this, xWorld, yWorld, c, room);
         coins.push(coin);
       }
     }
@@ -303,7 +314,7 @@ export function placeEnemies(
       ) as Phaser.Tilemaps.Tile | null;
       const c = pickRandomEnemy();
       if (!existing) {
-        const enemy = new Enemy(this, xWorld, yWorld, c);
+        const enemy = new Enemy(this, xWorld, yWorld, c, room);
         enemies.push(enemy);
       }
     }

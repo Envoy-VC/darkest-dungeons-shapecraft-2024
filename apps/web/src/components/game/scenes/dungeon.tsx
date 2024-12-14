@@ -8,6 +8,7 @@ import Phaser from 'phaser';
 
 import { type Coin, type Enemy, Player } from '../entities';
 import { gameState } from '../state';
+import type { TilemapVisibility } from '../tilemap-visibility';
 
 export class DungeonGameScene extends Phaser.Scene {
   public dungeon!: Dungeon;
@@ -16,6 +17,7 @@ export class DungeonGameScene extends Phaser.Scene {
   public tilemap!: Phaser.Tilemaps.Tilemap;
   public groundLayer!: Phaser.Tilemaps.TilemapLayer;
   public stuffLayer!: Phaser.Tilemaps.TilemapLayer;
+  public tilemapVisibility!: TilemapVisibility;
   public coins: Coin[] = [];
   public enemies: Enemy[] = [];
 
@@ -41,6 +43,7 @@ export class DungeonGameScene extends Phaser.Scene {
     this.physics.add.collider(this.player.sprite, args.stuffLayer);
 
     const coins = Actions.placeCoins.call(this, args.map, args.stuffLayer);
+    this.coins.push(...coins);
 
     coins.forEach((coin) => {
       this.physics.add.overlap(this.player.sprite, coin.sprite, () => {
@@ -80,8 +83,17 @@ export class DungeonGameScene extends Phaser.Scene {
 
   update() {
     this.player.update(this);
-    this.enemies.forEach((enemy) => {
-      enemy.update(this);
-    });
+    const playerTileX = this.groundLayer.worldToTileX(this.player.sprite.x);
+    const playerTileY = this.groundLayer.worldToTileY(this.player.sprite.y);
+    const playerRoom = this.dungeon.getRoomAt(playerTileX, playerTileY);
+    if (playerRoom) {
+      this.tilemapVisibility.setActiveRoom(playerRoom);
+      this.coins.forEach((coin) => {
+        coin.update(playerRoom);
+      });
+      this.enemies.forEach((enemy) => {
+        enemy.update(this, playerRoom);
+      });
+    }
   }
 }
