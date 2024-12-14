@@ -3,18 +3,23 @@ import { useState } from 'react';
 import { cn } from '~/lib/utils';
 
 import { useLogout, useUser } from '@account-kit/react';
+import { useNavigate } from '@tanstack/react-router';
 
 import { SignIn } from './sign-in';
 
 export const HomeMenu = () => {
   const user = useUser();
   const { logout } = useLogout();
+  const navigate = useNavigate();
 
   const items = [
     {
       name: 'Play',
       key: 'play',
-      onClick: () => true,
+      onClick: () =>
+        navigate({
+          to: '/game',
+        }),
     },
     {
       name: 'Profile',
