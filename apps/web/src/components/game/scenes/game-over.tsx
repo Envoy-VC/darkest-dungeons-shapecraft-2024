@@ -1,10 +1,14 @@
 import Phaser from 'phaser';
+import { type StoreArgs } from '~/hooks';
 
 import { gameState } from '../state';
 
 export class GameOverScene extends Phaser.Scene {
-  constructor() {
+  private storeFn: (args: StoreArgs) => Promise<string>;
+
+  constructor(storeFn: (args: StoreArgs) => Promise<string>) {
     super({ key: 'GameOverScene' });
+    this.storeFn = storeFn;
   }
 
   preload() {
@@ -48,14 +52,51 @@ export class GameOverScene extends Phaser.Scene {
     });
 
     storeButton.on('pointerdown', async () => {
-      // TODO: Alchemy Interaction
-      storeButton.setTint(0x808080);
-      console.log('Storing...');
-      await new Promise((resolve) => {
-        setTimeout(resolve, 2000);
-      });
-      console.log('Stored!');
-      storeButton.clearTint();
+      try {
+        storeButton.setTint(0x808080);
+        const id = crypto.randomUUID();
+        const times = gameState.times.map((time, index) => ({
+          startTime: BigInt(time.start),
+          endTime: BigInt(time.end ?? 0),
+          round: BigInt(index),
+        }));
+        await this.storeFn({
+          id,
+          totalScore: BigInt(gameState.score),
+          times,
+        });
+        const text = this.add.text(
+          width / 2 - width / 16,
+          height / 2 + 400,
+          'Result Stored Successfully',
+          {
+            fontSize: '24px',
+            color: '#fff',
+          }
+        );
+        text.setOrigin(0.5, 0.5);
+        this.time.delayedCall(3000, () => {
+          text.destroy();
+        });
+        storeButton.clearTint();
+      } catch (error) {
+        console.error('storeError', error);
+
+        const text = this.add.text(
+          width / 2 - width / 16,
+          height / 2 + 400,
+          'Store Failed',
+          {
+            fontSize: '24px',
+            color: '#fff',
+          }
+        );
+        text.setOrigin(0.5, 0.5);
+        this.time.delayedCall(3000, () => {
+          text.destroy();
+        });
+        storeButton.clearTint();
+      }
     });
 
     quitButton.on('pointerdown', () => {

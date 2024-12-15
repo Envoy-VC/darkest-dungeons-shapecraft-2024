@@ -2,16 +2,57 @@ import { useEffect, useRef, useState } from 'react';
 
 import { createFileRoute } from '@tanstack/react-router';
 import { observer } from 'mobx-react-lite';
+import Phaser from 'phaser';
+import { type StoreArgs, useGameActions } from '~/hooks';
 
-import { phaserGame } from '~/components/game';
 import { gameState } from '~/components/game/state';
+import { LoadingOverlay } from '~/components/loading-overlay';
 
-export const GameComponent = () => {
+import {
+  DungeonGameScene,
+  GameOverScene,
+  HomeScene,
+} from '../components/game/scenes';
+
+const GameWrapper = () => {
+  const { storeResult, isLoadingClient } = useGameActions();
+
+  if (isLoadingClient) return <LoadingOverlay />;
+
+  return <GameComponent storeFn={storeResult} />;
+};
+
+export const GameComponent = ({
+  storeFn,
+}: {
+  storeFn: (args: StoreArgs) => Promise<string>;
+}) => {
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const phaserGameRef = useRef<Phaser.Game | null>(null);
 
   useEffect(() => {
     if (gameContainerRef.current) {
+      const config: Phaser.Types.Core.GameConfig = {
+        width: 800,
+        height: 600,
+        type: Phaser.AUTO,
+        scene: [HomeScene, DungeonGameScene, new GameOverScene(storeFn)],
+        scale: {
+          width: '100%',
+          height: '100%',
+        },
+        parent: 'game-container',
+        pixelArt: true,
+        physics: {
+          default: 'arcade',
+          arcade: {
+            debug: import.meta.env.MODE === 'development',
+            gravity: { y: 0, x: 1 },
+          },
+        },
+      };
+
+      const phaserGame = new Phaser.Game(config);
       phaserGameRef.current = phaserGame;
     }
 
@@ -32,7 +73,7 @@ export const GameComponent = () => {
 };
 
 export const Route = createFileRoute('/game')({
-  component: GameComponent,
+  component: GameWrapper,
 });
 
 const GameDetails = observer(() => {

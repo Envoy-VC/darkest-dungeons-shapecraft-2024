@@ -14,7 +14,9 @@ contract DeployScript is Script {
 
         console.log("Deploying deployer address", deployerAddress);
 
-        DarkestDungeon game = new DarkestDungeon(deployerAddress);
+        address gasbackAddress = 0xf5e602c87d675E978F097503aedE4A766285a08B;
+
+        DarkestDungeon game = new DarkestDungeon(deployerAddress, gasbackAddress);
 
         console.log("Deployed Darkest Dungeon at address: %s", address(game));
         vm.stopBroadcast();

@@ -24,12 +24,10 @@ export const HomeMenu = () => {
     {
       name: 'Profile',
       key: 'profile',
-      onClick: () => true,
-    },
-    {
-      name: 'Leaderboard',
-      key: 'leaderboard',
-      onClick: () => true,
+      onClick: () =>
+        navigate({
+          to: '/profile',
+        }),
     },
     {
       name: 'Settings',

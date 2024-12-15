@@ -12,8 +12,15 @@
 import { Route as rootRoute } from './app/__root';
 import { Route as GameImport } from './app/game';
 import { Route as IndexImport } from './app/index';
+import { Route as ProfileImport } from './app/profile';
 
 // Create/Update Routes
+
+const ProfileRoute = ProfileImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRoute,
+} as any);
 
 const GameRoute = GameImport.update({
   id: '/game',
@@ -45,6 +52,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GameImport;
       parentRoute: typeof rootRoute;
     };
+    '/profile': {
+      id: '/profile';
+      path: '/profile';
+      fullPath: '/profile';
+      preLoaderRoute: typeof ProfileImport;
+      parentRoute: typeof rootRoute;
+    };
   }
 }
 
@@ -53,36 +67,41 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute;
   '/game': typeof GameRoute;
+  '/profile': typeof ProfileRoute;
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute;
   '/game': typeof GameRoute;
+  '/profile': typeof ProfileRoute;
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute;
   '/': typeof IndexRoute;
   '/game': typeof GameRoute;
+  '/profile': typeof ProfileRoute;
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: '/' | '/game';
+  fullPaths: '/' | '/game' | '/profile';
   fileRoutesByTo: FileRoutesByTo;
-  to: '/' | '/game';
-  id: '__root__' | '/' | '/game';
+  to: '/' | '/game' | '/profile';
+  id: '__root__' | '/' | '/game' | '/profile';
   fileRoutesById: FileRoutesById;
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
   GameRoute: typeof GameRoute;
+  ProfileRoute: typeof ProfileRoute;
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   GameRoute: GameRoute,
+  ProfileRoute: ProfileRoute,
 };
 
 export const routeTree = rootRoute
@@ -96,7 +115,8 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/game"
+        "/game",
+        "/profile"
       ]
     },
     "/": {
@@ -104,6 +124,9 @@ export const routeTree = rootRoute
     },
     "/game": {
       "filePath": "game.tsx"
+    },
+    "/profile": {
+      "filePath": "profile.tsx"
     }
   }
 }
