@@ -37,6 +37,8 @@ This game is built for the ShapeCraft Hackathon using modern tools and Web3 inte
 - Alchemy Account Kit: Gasless user authentication for smooth Web3 interactions.
 - On-Chain Features: Store scores and timer data on-chain, unlocking special perks for future playthroughs.
 
+Contracts are deployed at [0xFae1D0D5BaF9c5354ad14fc1763feb46F9fc7190](https://explorer-sepolia.shape.network/address/0xFae1D0D5BaF9c5354ad14fc1763feb46F9fc7190) on Shape Sepolia.
+
 ---
 
 ## 🌟 Future Scope
