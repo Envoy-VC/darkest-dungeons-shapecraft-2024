@@ -42,7 +42,7 @@ export class DungeonGameScene extends Phaser.Scene {
       soundtrack: this.sound.add('soundtrack', { loop: true }),
     };
 
-    this.sounds.soundtrack.play({ volume: 0.2 });
+    this.sounds.soundtrack.play({ volume: 0.4 });
     Actions.createAnimations(this);
     const args = Actions.createMap(this);
     this.player = new Player(this, args.startX, args.startY);
@@ -84,7 +84,6 @@ export class DungeonGameScene extends Phaser.Scene {
     camera.startFollow(this.player.sprite);
 
     this.input.keyboard?.on('keydown-ESC', () => {
-      gameState.reset();
       this.coins = [];
       this.enemies = [];
       gameState.activeScene = 'game-over';
@@ -100,7 +99,6 @@ export class DungeonGameScene extends Phaser.Scene {
   startRound() {
     const existing = gameState.times.find((t) => t.round === gameState.level);
     if (existing) return;
-    console.log('Starting round', gameState.level);
     gameState.times.push({ round: gameState.level, start: Date.now() });
   }
 

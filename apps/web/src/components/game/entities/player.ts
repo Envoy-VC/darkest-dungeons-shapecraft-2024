@@ -233,7 +233,6 @@ export class Player {
         if (gameState.totalLives <= 0) {
           scene.coins = [];
           scene.enemies = [];
-          gameState.reset();
           gameState.activeScene = 'game-over';
           scene.scene.start('GameOverScene');
         } else {

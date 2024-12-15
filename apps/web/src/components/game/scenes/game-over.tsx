@@ -66,7 +66,7 @@ export class GameOverScene extends Phaser.Scene {
           times,
         });
         const text = this.add.text(
-          width / 2 - width / 16,
+          width / 2,
           height / 2 + 400,
           'Result Stored Successfully',
           {
@@ -79,11 +79,12 @@ export class GameOverScene extends Phaser.Scene {
           text.destroy();
         });
         storeButton.clearTint();
+        gameState.reset();
       } catch (error) {
         console.error('storeError', error);
 
         const text = this.add.text(
-          width / 2 - width / 16,
+          width / 2,
           height / 2 + 400,
           'Store Failed',
           {

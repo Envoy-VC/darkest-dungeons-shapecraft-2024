@@ -26,9 +26,7 @@ export const useGameActions = () => {
       args: [address],
     });
 
-    console.log(res);
-
-    return res;
+    return res.toReversed();
   };
 
   const { sendUserOperationAsync } = useSendUserOperation({
@@ -59,7 +57,7 @@ export const useGameActions = () => {
         address,
       ],
     });
-    console.log(data);
+
     const res = await sendUserOperationAsync({
       uo: {
         target: gameContract.address,
